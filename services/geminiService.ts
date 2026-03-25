@@ -1,5 +1,4 @@
-import { GoogleGenAI } from "@google/genai"; // Rimosso Type se non usato qui
-import { EvaluationResult } from "../types";
+import { GoogleGenAI, SchemaType as Type } from "@google/genai";import { EvaluationResult } from "../types";
 
 // MODIFICA 1: Usa 'import.meta.env' e il prefisso 'VITE_'
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
