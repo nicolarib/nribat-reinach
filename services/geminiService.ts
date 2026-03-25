@@ -2,7 +2,7 @@
 import { GoogleGenAI, SchemaType as Type } from "@google/genai";
 import { EvaluationResult } from "../types";
 
-// Usiamo VITE_ per permettere a Netlify di passare la chiave al browser
+// 1. USA VITE_ PER LA CHIAVE (Deve esserci su Netlify con questo nome)
 const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
 export const evaluatePodcast = async (
@@ -11,7 +11,7 @@ export const evaluatePodcast = async (
   metadata: { studentNames: string; region: string }
 ): Promise<EvaluationResult> => {
   
-  // Usiamo il modello 1.5-flash che è quello più stabile e veloce
+  // 2. USA IL MODELLO 1.5-FLASH (Stabile e veloce)
   const genModel = ai.getGenerativeModel({
     model: "gemini-1.5-flash",
     generationConfig: {
@@ -60,7 +60,9 @@ export const evaluatePodcast = async (
     }
   });
 
-  const prompt = `Analizza il podcast per la regione ${metadata.region}. Valuta 1-5, commento in tedesco (usando ss), trascrizione IT/DE.`;
+  const prompt = `Sei un insegnante esperto. Analizza il podcast sulla regione ${metadata.region}. 
+  Valuta da 1 a 5 i criteri richiesti. Scrivi il commento in tedesco (usa sempre "ss"). 
+  Trascrivi il parlato in italiano con traduzione a fronte in tedesco.`;
 
   const result = await genModel.generateContent([
     { inlineData: { mimeType, data: audioBase64 } },
@@ -70,6 +72,7 @@ export const evaluatePodcast = async (
   const response = await result.response;
   const rawJson = JSON.parse(response.text());
 
+  // Calcolo del voto finale basato sui punteggi (max 20 punti -> voto da 1 a 6)
   const scores = rawJson.scores;
   const totalPoints = Object.values(scores).reduce((a: any, b: any) => a + b, 0);
   const finalGrade = (totalPoints / 20) * 5 + 1;
