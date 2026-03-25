@@ -1,6 +1,6 @@
-import { GoogleGenAI, SchemaType as Type } from "@google/genai";import { EvaluationResult } from "../types";
+import { GoogleGenAI, SchemaType as Type } from "@google/genai";
+import { EvaluationResult } from "../types";
 
-// MODIFICA 1: Usa 'import.meta.env' e il prefisso 'VITE_'
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
 
 export const evaluatePodcast = async (
@@ -8,7 +8,6 @@ export const evaluatePodcast = async (
   mimeType: string,
   metadata: { studentNames: string; region: string }
 ): Promise<EvaluationResult> => {
-  // MODIFICA 2: Usa un modello stabile (il 3-flash-preview spesso dà errore 400)
   const model = 'gemini-1.5-flash';
 
   const prompt = `
