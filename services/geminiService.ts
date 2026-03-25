@@ -1,15 +1,16 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai"; // Rimosso Type se non usato qui
 import { EvaluationResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// MODIFICA 1: Usa 'import.meta.env' e il prefisso 'VITE_'
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
 
 export const evaluatePodcast = async (
   audioBase64: string,
   mimeType: string,
   metadata: { studentNames: string; region: string }
 ): Promise<EvaluationResult> => {
-  const model = 'gemini-3-flash-preview';
+  // MODIFICA 2: Usa un modello stabile (il 3-flash-preview spesso dà errore 400)
+  const model = 'gemini-1.5-flash';
 
   const prompt = `
     Sei un insegnante esperto di Geografia e lingua Italiana. 
