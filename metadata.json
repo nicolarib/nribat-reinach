@@ -1,5 +1,5 @@
 {
-  "name": "Valutatore-v2",
+  "name": "ultimo",
   "description": "Un'applicazione avanzata per valutare automaticamente i podcast degli studenti sulle regioni italiane, basata su criteri pedagogici specifici.",
   "requestFramePermissions": [
     "microphone"

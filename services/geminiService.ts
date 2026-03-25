@@ -1,17 +1,66 @@
-import { GoogleGenAI, SchemaType as Type } from "@google/genai";
+
+import { GoogleGenAI, Type } from "@google/genai";
 import { EvaluationResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 export const evaluatePodcast = async (
   audioBase64: string,
   mimeType: string,
   metadata: { studentNames: string; region: string }
 ): Promise<EvaluationResult> => {
-  const modelName = 'gemini-1.5-flash';
-  const model = ai.getGenerativeModel({ 
-    model: modelName,
-    generationConfig: {
+  const model = 'gemini-3-flash-preview';
+
+  const prompt = `
+    Sei un insegnante esperto di Geografia e lingua Italiana. 
+    Analizza questo podcast registrato da studenti sulla regione italiana: ${metadata.region}.
+    Il podcast è recitato principalmente in lingua ITALIANA.
+    
+    VALUTAZIONE (1-5):
+    1. Inhalte sind richtig: Correttezza dei fatti geografici.
+    2. Viele Informationen: Approfondimento del contenuto.
+    3. Kreativität: Originalità e stile del podcast.
+    4. Beide sprechen mit: Equilibrio nella partecipazione.
+
+    REGOLE PER IL GIUDIZIO (comment):
+    - Scrivi in lingua TEDESCA (usando sempre "ss" al posto di "ß").
+    - Fornisci una VALUTAZIONE SINTETICA e concisa (massimo 15-20 parole).
+
+    ANALISI DEGLI ERRORI (detailedErrors):
+    - Riporta SOLO i principali errori di sintassi e di grammatica e gli errori di pronuncia più evidenti commessi in lingua ITALIANA.
+    - Includi anche eventuali errori gravi di contenuto geografico su ${metadata.region}.
+    - Ignora errori linguistici minori o poco rilevanti.
+    - NON correggere e NON segnalare eventuali errori nella lingua TEDESCA.
+    - Categorizza gli errori in:
+      - "Inhalt": Errori rilevanti sui dati geografici.
+      - "Sprache": Principali errori di grammatica o sintassi in ITALIANO.
+      - "Aussprache": Errori di pronuncia più evidenti di parole ITALIANE.
+    
+    Per ogni errore fornisci:
+    - original: La frase errata detta dagli studenti (in italiano).
+    - correction: La forma corretta (in italiano).
+    - explanation: Breve nota in TEDESCO (usando "ss") che spiega l'errore.
+
+    TRASCRIZIONE:
+    - Testo parlato (ITALIANO) e traduzione a fronte (TEDESCO con "ss").
+
+    Restituisci i risultati in formato JSON.
+  `;
+
+  const response = await ai.models.generateContent({
+    model,
+    contents: {
+      parts: [
+        {
+          inlineData: {
+            mimeType,
+            data: audioBase64,
+          },
+        },
+        { text: prompt },
+      ],
+    },
+    config: {
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -32,7 +81,7 @@ export const evaluatePodcast = async (
             items: {
               type: Type.OBJECT,
               properties: {
-                category: { type: Type.STRING },
+                category: { type: Type.STRING, enum: ["Inhalt", "Sprache", "Aussprache"] },
                 original: { type: Type.STRING },
                 correction: { type: Type.STRING },
                 explanation: { type: Type.STRING }
@@ -54,31 +103,10 @@ export const evaluatePodcast = async (
         },
         required: ["scores", "comment", "detailedErrors", "transcript"],
       },
-    }
+    },
   });
 
-  const prompt = `
-    Sei un insegnante esperto di Geografia e lingua Italiana. 
-    Analizza questo file per la regione: ${metadata.region}.
-    VALUTAZIONE (1-5): Inhalte richtig, Viele Info, Kreativität, Beide sprechen.
-    Commento in TEDESCO (usando "ss").
-    Errori in ITALIANO categorizzati: Inhalt, Sprache, Aussprache.
-    Trascrizione bilingue (IT/DE).
-    Restituisci JSON.
-  `;
-
-  const result = await model.generateContent([
-    {
-      inlineData: {
-        mimeType,
-        data: audioBase64,
-      },
-    },
-    { text: prompt },
-  ]);
-
-  const response = await result.response;
-  const rawJson = JSON.parse(response.text());
+  const rawJson = JSON.parse(response.text);
   
   const scores = rawJson.scores as Record<string, number>;
   const totalPoints = Object.values(scores).reduce((a, b) => a + b, 0);

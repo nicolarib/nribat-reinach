@@ -29,7 +29,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EvaluationResult | null>(null);
   const [steps, setSteps] = useState<ProcessingStep[]>([
-    { label: 'Caricamento file...', status: 'pending' },
+    { label: 'Caricamento audio...', status: 'pending' },
     { label: 'Analisi errori in Italiano...', status: 'pending' },
     { label: 'Valutazione criteri...', status: 'pending' },
     { label: 'Sintesi giudizio...', status: 'pending' },
@@ -185,15 +185,15 @@ const App: React.FC = () => {
               className={`bg-white rounded-2xl border-2 border-dashed p-12 text-center cursor-pointer hover:border-blue-400 ${file ? 'border-blue-400 bg-blue-50/20' : 'border-slate-200'}`}
               onClick={() => fileInputRef.current?.click()}
             >
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*" className="hidden" />
               <Upload className={`mx-auto w-12 h-12 mb-4 ${file ? 'text-blue-600' : 'text-slate-300'}`} />
-              <p className="font-semibold text-slate-800">{file ? file.name : 'Carica il Podcast o Video'}</p>
+              <p className="font-semibold text-slate-800">{file ? file.name : 'Carica il Podcast'}</p>
             </div>
 
             {error && <div className="bg-red-50 text-red-700 p-4 rounded-xl flex gap-2"><AlertCircle className="w-5 h-5" />{error}</div>}
 
             <button onClick={handleEvaluate} disabled={loading || !file} className={`w-full py-4 rounded-xl font-bold text-white shadow-lg ${loading ? 'bg-slate-300' : 'bg-blue-600 hover:bg-blue-700'}`}>
-              {loading ? 'Analisi in corso...' : 'Valuta Podcast / Video'}
+              {loading ? 'Analisi in corso...' : 'Valuta Podcast'}
             </button>
 
             {loading && (
